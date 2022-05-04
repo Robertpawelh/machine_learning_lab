@@ -17,17 +17,15 @@ namespace GeneticAlgorithm
 
         public class Result
         {
-            public String modelName { get; set; }
-            public double paramValue { get; set; }
+            public String ModelName { get; set; }
+            public double Iterations { get; set; }
+            public double PopulationSize { get; set; }
+            public double TournamentSize { get; set; }
+            public double CrossoverProbability { get; set; }
+            public double MutationProbability { get; set; }
             public double solutionValue { get; set; }
         }
-        static void AlgComparisons(Problem problem)
-        {
-            GeneticAlgorithm genetic =
-                new GeneticAlgorithm(problem: problem, iterations: 300, populationSize: 175, tournamentSize: 128, crossoverProbability: 0.15, mutationProbability: 0.15
-                );
-        }
-        
+
         public static void SaveToCsv(List<Result> results, string name, string path)
         {
             // by: https://code-maze.com/csharp-writing-csv-file/
@@ -95,8 +93,12 @@ namespace GeneticAlgorithm
                     results.Add(
                         new Result
                         {
-                            modelName = modelParams.Key,
-                            paramValue = modelParams.Value[testName],
+                            ModelName = modelParams.Key,
+                            Iterations = iterations,
+                            PopulationSize = modelParams.Value["PopulationSize"],
+                            TournamentSize = modelParams.Value["TournamentSize"],
+                            CrossoverProbability = modelParams.Value["CrossoverProbability"],
+                            MutationProbability = modelParams.Value["MutationProbability"],
                             solutionValue = bestValues.Average()
                         }
                     );
@@ -188,8 +190,12 @@ namespace GeneticAlgorithm
                     results.Add(
                         new Result
                         {
-                            modelName = modelParams.Key,
-                            paramValue = 2137,
+                            ModelName = modelParams.Key,
+                            Iterations = iterations,
+                            PopulationSize = 1,
+                            TournamentSize = 1,
+                            CrossoverProbability = 1,
+                            MutationProbability = 1,
                             solutionValue = bestValues.Average()
                         }
                     );
@@ -199,7 +205,7 @@ namespace GeneticAlgorithm
             }
         }
         
-        public static void Experiment_2(int n_samples, int iterations)
+        public static void ExperimentCrossoverMutation(int n_samples, int iterations)
         {
             Dictionary<String, Dictionary<String, double>>
                 models = new Dictionary<string, Dictionary<string, double>>();
@@ -221,7 +227,7 @@ namespace GeneticAlgorithm
             Experiment(n_samples, iterations, "CrossoverMutationProbability", models);
         }
         
-        public static void Experiment_4(int n_samples, int iterations)
+        public static void ExperimentPopulationIterations(int n_samples)
         {
             Dictionary<String, Dictionary<String, double>> models = new Dictionary<string, Dictionary<string, double>>()
             {
@@ -282,8 +288,9 @@ namespace GeneticAlgorithm
             };
 
             Experiment_1(n_samples, "AlgsComparison", iterations, geneticModel);
-            Experiment_2(n_samples, iterations);
-            Experiment_4(n_samples, iterations);
+            ExperimentCrossoverMutation(n_samples, iterations);
+            ExperimentPopulationIterations(n_samples);
+            ExperimentTournamentSize(n_samples, iterations);
             
             Console.ReadKey();
         }
