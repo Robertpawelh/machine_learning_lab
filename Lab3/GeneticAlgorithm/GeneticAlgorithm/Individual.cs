@@ -37,7 +37,7 @@ namespace GeneticAlgorithm
             {
                 if (i % 2 == 1)
                 {
-                    genotype[i] = rng.Next(-2, 0);
+                    genotype[i] = rng.Next(0, 2);
                 }
                 else
                 {

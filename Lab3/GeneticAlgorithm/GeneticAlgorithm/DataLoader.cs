@@ -26,9 +26,6 @@ namespace GeneticAlgorithm
                 Console.WriteLine($"{n_customers} {capacity}");
 
                 Customer[] customers = new Customer[n_customers];
-                //line = reader.ReadLine().Split();
-                //Customer vehicle = new Customer(coordinates: (int.Parse(line[1]), int.Parse(line[2]))));
-
                 for (int i = 0; i < n_customers; i++)
                 {
                     line = reader.ReadLine().Split();

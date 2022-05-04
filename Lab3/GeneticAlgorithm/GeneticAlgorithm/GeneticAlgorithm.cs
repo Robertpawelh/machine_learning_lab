@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace GeneticAlgorithm
 {
-    public class GeneticAlgorithm
+    public class GeneticAlgorithm : Model
     {
         private Problem Problem;
         private readonly int PopulationSize;
@@ -22,6 +22,8 @@ namespace GeneticAlgorithm
         public List<double> BestFitnesses;
         public List<double> WorstFitnesses;
         public List<double> AverageFitnesses;
+
+        public bool Verbose = false;
 
         public GeneticAlgorithm(Problem problem, int iterations, int populationSize, int tournamentSize, double crossoverProbability, double mutationProbability)
         {
@@ -75,9 +77,9 @@ namespace GeneticAlgorithm
             }
         }
 
-        private bool StopCondition(int n_iteration)
+        private bool StopCondition(int nIteration)
         {
-            return n_iteration > MaxIterations;
+            return nIteration > MaxIterations;
         }
 
         private Individual Tournament()
@@ -105,58 +107,52 @@ namespace GeneticAlgorithm
                 }
             }
 
-            int[] helper = parent1.Genotype.Where(x => x >= 0).ToArray();
-            List<int> missingGenes = new List<int>(helper); // WERYFIKACJA - KOPIA TU JEST?
+            int[] helper = parent1.Genotype.Where((item, index) => index % 2 == 0).ToArray();;//parent1.Genotype.Where(x => x >= 0).ToArray();
+            List<int> missingGenes = new List<int>(helper);
             
             int gene = missingGenes[Rng.Next(missingGenes.Count)];
-            while (missingGenes.Count > newGenotype.Length)
+            bool overHalfAndNotInCycle = false;
+            while (!overHalfAndNotInCycle)
             {
                 missingGenes.Remove(gene);
                 int geneId = Array.FindIndex(parent1.Genotype, x => x == gene);
-                if (geneId < 0 || geneId > newGenotype.Length)
                 newGenotype[geneId] = gene;
                 int equivalentGene = parent2.Genotype[geneId];
-                if (!missingGenes.Contains(equivalentGene))
-                {
-                    gene = missingGenes[Rng.Next(missingGenes.Count)];
-                }
-                else
+
+                if (missingGenes.Contains(equivalentGene))
                 {
                     gene = equivalentGene;
                 }
+                else
+                {
+                    overHalfAndNotInCycle = missingGenes.Count <= (helper.Length / 2);
+                    if (missingGenes.Count > 0)
+                    {
+                        gene = missingGenes[Rng.Next(missingGenes.Count)];
+                    }
+                }
             }
             
-            gene = missingGenes[Rng.Next(missingGenes.Count)];
             while (missingGenes.Count > 0)
             {
                 missingGenes.Remove(gene);
                 int geneId = Array.FindIndex(parent2.Genotype, x => x == gene);
-                // Console.WriteLine($"{parent1.Genotype.Length} {parent2.Genotype.Length} {geneId}");
-                //
-                // Console.WriteLine("New");
-                // foreach (var VARIABLE in parent2.Genotype)
-                // {
-                //     Console.Write($"{VARIABLE},");
-                // }
-                // Console.WriteLine("EndNew");
                 newGenotype[geneId] = gene;
                 int equivalentGene = parent1.Genotype[geneId];
-                if (!missingGenes.Contains(equivalentGene) && missingGenes.Count > 0)
-                {
-                    gene = missingGenes[Rng.Next(missingGenes.Count)];
-                }
-                else
+                if (missingGenes.Contains(equivalentGene))
                 {
                     gene = equivalentGene;
                 }
+                else
+                {
+                    if (missingGenes.Count > 0)
+                    {
+                        gene = missingGenes[Rng.Next(missingGenes.Count)];
+                    }
+                }
             }
-
-            // foreach (var VARIABLE in newGenotype)
-            // {
-            //     Console.Write($"{VARIABLE},");
-            // }
-            //Console.WriteLine();
-            return new Individual(newGenotype); //TODO;
+            
+            return new Individual(newGenotype);
         }
 
         private void Mutation(Individual individual)
@@ -171,13 +167,11 @@ namespace GeneticAlgorithm
                     geneId2 = Rng.Next(individual.Genotype.Length/2) * 2;
                     (individual.Genotype[geneId1], individual.Genotype[geneId2]) = (individual.Genotype[geneId2], individual.Genotype[geneId1]);
                 }
-                if (Rng.NextDouble() > 0.5)
+                else
                 {
                     geneId1 = Rng.Next(individual.Genotype.Length/2) * 2 + 1;
-                    geneId2 = Rng.Next(individual.Genotype.Length/2) * 2 + 1;
-                    (individual.Genotype[geneId1], individual.Genotype[geneId2]) = (individual.Genotype[geneId2], individual.Genotype[geneId1]);
+                    individual.Genotype[geneId1] = (individual.Genotype[geneId1] + 1) % 2;
                 }
-                
             }
         }
         
@@ -189,7 +183,7 @@ namespace GeneticAlgorithm
             {
                 if (i % 2 == 1)
                 {
-                    if (solution[i] == -1)
+                    if (solution[i] == 0)
                     {
                         routeId += 1;
                         Console.WriteLine();
@@ -208,6 +202,9 @@ namespace GeneticAlgorithm
         {
             BestFitnesses.Add(population.Min(x => x.Fitness));
             WorstFitnesses.Add(population.Max(x => x.Fitness));
+
+            // TU SA BLEDY!!! 
+            //1 / 0;
             AverageFitnesses.Add(population.Average(x => x.Fitness));
         }
         public int[] Run()
@@ -219,7 +216,7 @@ namespace GeneticAlgorithm
 
             while (!StopCondition(iteration))
             {
-                if (iteration%25 == 0) Console.WriteLine(iteration);
+                if (iteration%25 == 0 && Verbose) Console.WriteLine(iteration);
                 List<Individual> newPopulation = new List<Individual>();
                 while (newPopulation.Count != PopulationSize)
                 {
@@ -241,11 +238,15 @@ namespace GeneticAlgorithm
                     // Console.WriteLine($"{child.Fitness}, {BestFitness}");
                     if (child.Fitness < BestFitness)
                     {
-                        BestFitness = child.Fitness;
-                        BestSolution = new int[child.Genotype.Length];
-                        child.Genotype.CopyTo(BestSolution, 0);
-                        //PrintSolution(BestSolution);
-                        Console.WriteLine($"Fitness: {BestFitness}");
+                        if (Problem.IsSolutionCorrect(child.Genotype))
+                        {
+                            BestFitness = child.Fitness;
+                            BestSolution = new int[child.Genotype.Length];
+                            child.Genotype.CopyTo(BestSolution, 0);
+                            //PrintSolution(BestSolution);
+                            if (Verbose)
+                                Console.WriteLine($"Fitness: {BestFitness}");
+                        }
                     }
                 }
                 

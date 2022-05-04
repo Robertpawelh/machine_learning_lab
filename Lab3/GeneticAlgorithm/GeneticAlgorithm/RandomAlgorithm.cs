@@ -1,39 +1,39 @@
 using System;
+using GeneticAlgorithm;
 
-namespace GeneticAlgorithm
+public class RandomAlgorithm : Model
 {
-    public class RandomAlgorithm
+    private Problem Problem;
+    private double BestFitness;
+    private int[] BestSolution;
+    private int NIterations;
+    
+    public RandomAlgorithm(Problem problem, int nIterations)
     {
-        private Problem Problem;
-        private double BestFitness;
-        private int[] BestSolution;
+        Problem = problem;
+        BestFitness = Double.PositiveInfinity;
+        BestSolution = null;
+        NIterations = nIterations;
+    }
 
-        public RandomAlgorithm(Problem problem)
+    public int[] Run()
+    {
+        Random Rng = new Random();
+
+        for (int i = 0; i < NIterations; i++)
         {
-            Problem = problem;
-            BestFitness = Double.PositiveInfinity;
-            BestSolution = null;
-        }
+            Individual solution = Individual.GenerateRandom(Problem, Rng);
+            double fitness = Problem.Fitness(solution.Genotype);
 
-        public int[] Run()
-        {
-            Random Rng = new Random();
-
-            for (int i = 0; i < 1_000_000; i++)
+            if (fitness < BestFitness)
             {
-                Individual solution = Individual.GenerateRandom(Problem, Rng);
-                double fitness = Problem.Fitness(solution.Genotype);
-
-                if (fitness < BestFitness)
-                {
-                    BestFitness = fitness;
-                    BestSolution = new int[solution.Genotype.Length];
-                    solution.Genotype.CopyTo(BestSolution, 0);
-                    Console.WriteLine($"Fitness: {BestFitness}");
-                }
+                BestFitness = fitness;
+                BestSolution = new int[solution.Genotype.Length];
+                solution.Genotype.CopyTo(BestSolution, 0);
+                Console.WriteLine($"Fitness: {BestFitness}");
             }
-
-            return BestSolution;
         }
+
+        return BestSolution;
     }
 }

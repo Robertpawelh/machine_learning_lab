@@ -14,10 +14,8 @@
             Demand = -1;
         }
         
-        public Customer(int realId, (int, int) coordinates, int demand)// : base(id, coordinates)
+        public Customer(int realId, (int, int) coordinates, int demand) : this(realId, coordinates)
         {
-            RealId = realId;
-            Coordinates = coordinates;
             Demand = demand;
         }
     }
