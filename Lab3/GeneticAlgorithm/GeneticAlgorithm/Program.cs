@@ -43,7 +43,7 @@ namespace GeneticAlgorithm
             }
         }
 
-        public static void Experiment(int n_samples, int iterations, string testName, Dictionary<String, Dictionary<String, Double>> models)
+        public static void Experiment(int n_samples, int iterations, string testName, Dictionary<String, Dictionary<String, Double>> models, bool saveFig=true)
         {
             DataLoader dataLoader = new DataLoader();
             Dictionary<String, String> problems = new Dictionary<string, string>()
@@ -89,6 +89,9 @@ namespace GeneticAlgorithm
                     }
 
                     List<Result> results = new List<Result>();
+                    bestFitnesses = bestFitnesses.Select(x => x / n_samples).ToArray();
+                    averageFitnesses = averageFitnesses.Select(x => x / n_samples).ToArray();
+                    worstFitnesses = worstFitnesses.Select(x => x / n_samples).ToArray();
 
                     results.Add(
                         new Result
@@ -116,7 +119,7 @@ namespace GeneticAlgorithm
                         x = Enumerable.Range(0, worstFitnesses.Length).ToList().ConvertAll(x => (double) x),
                         y = worstFitnesses, //  y = df1.Columns["Ages"],
                         mode = "lines+markers",
-                        name = "Worst fitness (but viable)",
+                        name = "Worst fitness",
                     };
 
                     Scatter scatter_i3 = new Scatter()
@@ -135,7 +138,8 @@ namespace GeneticAlgorithm
                     var chart = Chart.Plot(scatters);
                     //chart.Show();
                     var chartHtml = chart.GetHtml();
-                    System.IO.File.WriteAllText($"../../Results/{problemParams.Key}_{testName}_{modelParams.Key}_plot_results.html",
+                    
+                    if (saveFig) System.IO.File.WriteAllText($"../../Results/{problemParams.Key}_{testName}_{modelParams.Key}_plot_results.html",
                         chartHtml);
                     SaveToCsv(results, $"{problemParams.Key}_{testName}_results", "../../Results/");
                 }
@@ -210,24 +214,24 @@ namespace GeneticAlgorithm
             Dictionary<String, Dictionary<String, double>>
                 models = new Dictionary<string, Dictionary<string, double>>();
             
-            List<double> parameters = Enumerable.Range(0, 10).Select(x => (double)x/10).ToList();
+            List<double> parameters = Enumerable.Range(0, 11).Select(x => (double)x/10).ToList();
             foreach (double cross in parameters)
             {
                 foreach (double mutat in parameters)
                 {
                     models[$"Cross_mutat_{cross}_{mutat}"] = new Dictionary<string, double>
                     {
-                        {"PopulationSize", 100},
+                        {"PopulationSize", 200},
                         {"TournamentSize", 32},
                         {"CrossoverProbability", cross},
                         {"MutationProbability", mutat},
                     };
                 }
             }
-            Experiment(n_samples, iterations, "CrossoverMutationProbability", models);
+            Experiment(n_samples, iterations, "CrossoverMutationProbability", models, saveFig: true);
         }
         
-        public static void ExperimentPopulationIterations(int n_samples)
+        public static void ExperimentPopulation(int n_samples, int iterations)
         {
             Dictionary<String, Dictionary<String, double>> models = new Dictionary<string, Dictionary<string, double>>()
             {
@@ -237,7 +241,7 @@ namespace GeneticAlgorithm
                         {"PopulationSize", 100},
                         {"TournamentSize", 32},
                         {"CrossoverProbability", 0.5},
-                        {"MutationProbability", 0.1},
+                        {"MutationProbability", 0.5},
                     }
                 },
                 {
@@ -246,7 +250,7 @@ namespace GeneticAlgorithm
                         {"PopulationSize", 200},
                         {"TournamentSize", 32},
                         {"CrossoverProbability", 0.5},
-                        {"MutationProbability", 0.1},
+                        {"MutationProbability", 0.5},
                     }
                 },
                 {
@@ -255,7 +259,7 @@ namespace GeneticAlgorithm
                         {"PopulationSize", 500},
                         {"TournamentSize", 32},
                         {"CrossoverProbability", 0.5},
-                        {"MutationProbability", 0.1},
+                        {"MutationProbability", 0.5},
                     }
                 },
                 {
@@ -264,7 +268,7 @@ namespace GeneticAlgorithm
                         {"PopulationSize", 1000},
                         {"TournamentSize", 32},
                         {"CrossoverProbability", 0.5},
-                        {"MutationProbability", 0.1},
+                        {"MutationProbability", 0.5},
                     }
                 }
             };
@@ -272,25 +276,124 @@ namespace GeneticAlgorithm
             Experiment(n_samples, iterations, "PopulationSize", models);
         }
         
+        public static void ExperimentIterations(int n_samples)
+        {
+            Dictionary<String, Dictionary<String, double>> models = new Dictionary<string, Dictionary<string, double>>()
+            {
+                {
+                    "Iterations_500", new Dictionary<string, double>
+                    {
+                        {"PopulationSize", 500},
+                        {"TournamentSize", 32},
+                        {"CrossoverProbability", 0.5},
+                        {"MutationProbability", 0.5},
+                    }
+                }
+            };
+            Experiment(n_samples, 500, "Iterations", models);
+        }
+        
+        public static void ExperimentTournamentSize(int n_samples, int iterations)
+        {
+            Dictionary<String, Dictionary<String, double>> models = new Dictionary<string, Dictionary<string, double>>()
+            {
+                {
+                    "Tournament_1", new Dictionary<string, double>
+                    {
+                        {"PopulationSize", 500},
+                        {"TournamentSize", 1},
+                        {"CrossoverProbability", 0.5},
+                        {"MutationProbability", 0.5},
+                    }
+                },
+                {
+                    "Tournament_2", new Dictionary<string, double>
+                    {
+                        {"PopulationSize", 500},
+                        {"TournamentSize", 2},
+                        {"CrossoverProbability", 0.5},
+                        {"MutationProbability", 0.5},
+                    }
+                },
+                {
+                    "Tournament_16", new Dictionary<string, double>
+                    {
+                        {"PopulationSize", 500},
+                        {"TournamentSize", 16},
+                        {"CrossoverProbability", 0.5},
+                        {"MutationProbability", 0.5},
+                    }
+                },
+                {
+                    "Tournament_64", new Dictionary<string, double>
+                    {
+                        {"PopulationSize", 500},
+                        {"TournamentSize", 64},
+                        {"CrossoverProbability", 0.5},
+                        {"MutationProbability", 0.5},
+                    }
+                },
+                {
+                    "Tournament_250", new Dictionary<string, double>
+                    {
+                        {"PopulationSize", 500},
+                        {"TournamentSize", 250},
+                        {"CrossoverProbability", 0.5},
+                        {"MutationProbability", 0.5},
+                    }
+                },
+                {
+                    "Tournament_500", new Dictionary<string, double>
+                    {
+                        {"PopulationSize", 500},
+                        {"TournamentSize", 500},
+                        {"CrossoverProbability", 0.5},
+                        {"MutationProbability", 0.5},
+                    }
+                }
+            };
+            
+            Experiment(n_samples, iterations, "TournamentSize", models);
+        }
+        
+        public static void ExperimentTest(int n_samples)
+        {
+            Dictionary<String, Dictionary<String, double>> models = new Dictionary<string, Dictionary<string, double>>()
+            {
+                {
+                    "Iterations_500", new Dictionary<string, double>
+                    {
+                        {"PopulationSize", 100},
+                        {"TournamentSize", 100},
+                        {"CrossoverProbability", 0.5},
+                        {"MutationProbability", 0.5},
+                    }
+                }
+            };
+            Experiment(n_samples, 500, "Iterations", models);
+        }
+        
         static void Main(string[] args)
         {
             const int iterations = 100;
-            const int n_samples = 10;
+            const int n_samples = 4;
             //problem.CalculateDistanceMatrix();
             //RandomAlgorithm random = new RandomAlgorithm(problem, 175*300);
             //GreedyAlgorithm greedy = new GreedyAlgorithm(problem);
             Dictionary<string, double> geneticModel = new Dictionary<string, double>()
             {
-                {"PopulationSize", 200},
+                {"PopulationSize", 500},
                 {"TournamentSize", 32},
                 {"CrossoverProbability", 0.5},
-                {"MutationProbability", 0.1},
+                {"MutationProbability", 0.5},
             };
 
+            //ExperimentTest(1);
+            //ExperimentCrossoverMutation(n_samples, iterations);
+            //ExperimentPopulation(n_samples, iterations);
             Experiment_1(n_samples, "AlgsComparison", iterations, geneticModel);
-            ExperimentCrossoverMutation(n_samples, iterations);
-            ExperimentPopulationIterations(n_samples);
-            ExperimentTournamentSize(n_samples, iterations);
+            //ExperimentIterations(n_samples);
+            //ExperimentTournamentSize(n_samples, iterations);
             
             Console.ReadKey();
         }

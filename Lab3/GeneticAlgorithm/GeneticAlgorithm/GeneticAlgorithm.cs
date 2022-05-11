@@ -155,7 +155,7 @@ namespace GeneticAlgorithm
             return new Individual(newGenotype);
         }
 
-        private void Mutation(Individual individual)
+        private Individual Mutation(Individual individual)
         {
             if (MutationProbability > Rng.NextDouble())
             {
@@ -172,7 +172,10 @@ namespace GeneticAlgorithm
                     geneId1 = Rng.Next(individual.Genotype.Length/2) * 2 + 1;
                     individual.Genotype[geneId1] = (individual.Genotype[geneId1] + 1) % 2;
                 }
+                individual.Fitness = -1;
             }
+
+            return individual;
         }
         
         public void PrintSolution(int[] solution)
@@ -232,7 +235,7 @@ namespace GeneticAlgorithm
                         child = new Individual(parent1);
                     }
 
-                    Mutation(child);
+                    child = Mutation(child);
                     child.Fitness = Fitness(child);
                     newPopulation.Add(child);
                     // Console.WriteLine($"{child.Fitness}, {BestFitness}");
